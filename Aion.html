@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Aion — Bíblia do Universo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@300;400;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --void: #060608;
+      --surface: #11111a;
+      --card: #16161f;
+      --border: #22223a;
+      --gold: #c8a96e;
+      --gold-dim: #7a6030;
+      --gold-pale: #c8a96e13;
+      --silver: #c8d0e0;
+      --muted: #5a5a78;
+      --text: #9090b0;
+      --white: #e8eaf0;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 15px; }
+    body {
+      background: var(--void); color: var(--text);
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      line-height: 1.8; display: flex; height: 100vh; overflow: hidden;
+    }
+
+    /* STARFIELD */
+    #stars { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+    .star { position: absolute; border-radius: 50%; background: white; animation: twinkle var(--d,4s) ease-in-out infinite alternate; animation-delay: var(--delay,0s); }
+    @keyframes twinkle { from { opacity: var(--op,.1); } to { opacity: calc(var(--op,.1)*4); } }
+
+    /* ══════════════════════════════
+       SIDEBAR
+    ══════════════════════════════ */
+    aside {
+      position: relative; z-index: 10;
+      width: 260px; flex-shrink: 0;
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+    }
+
+    .aside-header {
+      padding: 1.8rem 1.4rem 1.4rem;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .aside-label { font-family: 'Inter', sans-serif; font-size: 0.56rem; letter-spacing: 5px; text-transform: uppercase; color: var(--gold); margin-bottom: 0.3rem; }
+    .aside-title { font-family: 'Cinzel', serif; font-size: 1.7rem; font-weight: 300; color: var(--white); letter-spacing: 4px; margin-bottom: 0.15rem; }
+    .aside-author { font-size: 0.76rem; font-style: italic; color: var(--muted); }
+
+    /* Scroll da nav */
+    .aside-nav {
+      flex: 1; overflow-y: auto;
+      scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+      padding: 0.8rem 0;
+    }
+
+    /* ── GRUPO (accordion) ── */
+    .acc-group { border-bottom: 1px solid var(--border); }
+    .acc-group:first-child { border-top: 1px solid var(--border); }
+
+    /* Botão-mãe */
+    .acc-head {
+      width: 100%;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.9rem 1.2rem;
+      background: none; border: none; cursor: pointer;
+      text-align: left; gap: 0.8rem;
+      transition: background 0.2s;
+    }
+    .acc-head:hover { background: var(--gold-pale); }
+    .acc-head.open { background: var(--gold-pale); }
+
+    .acc-head-left { display: flex; flex-direction: column; gap: 0.1rem; }
+    .acc-era {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.54rem; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--gold-dim);
+    }
+    .acc-head.open .acc-era { color: var(--gold); }
+    .acc-title {
+      font-family: 'Cinzel', serif;
+      font-size: 0.88rem; font-weight: 300;
+      color: var(--muted); letter-spacing: 1px;
+      transition: color 0.2s;
+    }
+    .acc-head:hover .acc-title,
+    .acc-head.open .acc-title { color: var(--white); }
+
+    .acc-arrow {
+      font-size: 0.6rem; color: var(--muted);
+      transition: transform 0.3s; flex-shrink: 0;
+    }
+    .acc-head.open .acc-arrow { transform: rotate(180deg); color: var(--gold); }
+
+    /* Lista de subtítulos */
+    .acc-body {
+      max-height: 0; overflow: hidden;
+      transition: max-height 0.35s ease;
+      background: var(--void);
+    }
+    .acc-body.open { max-height: 600px; }
+
+    /* Sub-item */
+    .sub-item {
+      display: flex; align-items: center; gap: 0.8rem;
+      padding: 0.65rem 1.2rem 0.65rem 2rem;
+      cursor: pointer; border: none; background: none;
+      width: 100%; text-align: left;
+      border-left: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .sub-item:hover { background: var(--gold-pale); border-left-color: var(--gold-dim); }
+    .sub-item.active { background: var(--gold-pale); border-left-color: var(--gold); }
+
+    .sub-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--muted); flex-shrink: 0;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    .sub-item:hover .sub-dot,
+    .sub-item.active .sub-dot {
+      background: var(--gold);
+      box-shadow: 0 0 6px var(--gold-dim);
+    }
+
+    .sub-text {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.76rem; font-weight: 300;
+      color: var(--muted); transition: color 0.2s;
+      line-height: 1.3;
+    }
+    .sub-item:hover .sub-text,
+    .sub-item.active .sub-text { color: var(--silver); }
+
+    /* ══════════════════════════════
+       MAIN
+    ══════════════════════════════ */
+    main {
+      position: relative; z-index: 1;
+      flex: 1; overflow-y: auto;
+      scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+    }
+
+    .page {
+      display: none;
+      padding: 3rem 4rem;
+      min-height: 100%;
+      animation: pageIn 0.35s ease both;
+    }
+    .page.active { display: block; }
+
+    @keyframes pageIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Elementos de conteúdo ── */
+    .page-eyebrow { font-family: 'Inter', sans-serif; font-size: 0.58rem; letter-spacing: 5px; text-transform: uppercase; color: var(--gold); margin-bottom: 0.5rem; display: block; }
+    .page-title { font-family: 'Cinzel', serif; font-size: clamp(1.6rem,3vw,2.3rem); font-weight: 300; color: var(--white); letter-spacing: 2px; margin-bottom: 0.5rem; }
+    .page-rule { width: 40px; height: 1px; background: var(--gold); box-shadow: 0 0 8px var(--gold-dim); margin-bottom: 2rem; }
+    .page-lead { font-size: 1.05rem; font-style: italic; color: var(--silver); max-width: 660px; margin-bottom: 1.8rem; line-height: 1.9; font-weight: 300; }
+    .page-body { font-size: 0.95rem; color: var(--text); max-width: 660px; line-height: 1.9; }
+    .page-body p { margin-bottom: 1.2rem; }
+    .page-body strong { color: var(--silver); }
+
+    .callout { background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--gold); padding: 1.2rem 1.4rem; margin: 1.5rem 0; font-style: italic; font-size: 0.95rem; color: var(--silver); max-width: 660px; }
+
+    /* Linha do tempo interna */
+    .itl { position: relative; margin: 2rem 0; max-width: 660px; padding-left: 2rem; }
+    .itl::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 1px; background: linear-gradient(to bottom, transparent, var(--border) 5%, var(--border) 95%, transparent); }
+    .itl-item { position: relative; padding: 0 0 1.8rem 1.5rem; }
+    .itl-item:last-child { padding-bottom: 0; }
+    .itl-item::before { content: ''; position: absolute; left: -5px; top: 6px; width: 11px; height: 11px; border-radius: 50%; background: var(--void); border: 1px solid var(--gold-dim); transition: all 0.3s; }
+    .itl-item:hover::before { border-color: var(--gold); box-shadow: 0 0 10px var(--gold-dim); }
+    .itl-item::after { content: ''; position: absolute; left: 6px; top: 11px; width: 18px; height: 1px; background: var(--border); }
+    .itl-date { font-family: 'Inter', sans-serif; font-size: 0.6rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); margin-bottom: 0.25rem; display: block; }
+    .itl-title { font-family: 'Cinzel', serif; font-size: 0.95rem; color: var(--white); margin-bottom: 0.25rem; }
+    .itl-desc { font-size: 0.88rem; color: var(--muted); font-style: italic; line-height: 1.7; }
+    .itl-tag { display: inline-block; margin-top: 0.35rem; padding: 0.12rem 0.55rem; background: var(--gold-pale); color: var(--gold-dim); font-family: 'Inter', sans-serif; font-size: 0.58rem; letter-spacing: 2px; text-transform: uppercase; border-radius: 2px; }
+
+    /* Cards */
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px,1fr)); gap: 1.2rem; margin-top: 1.5rem; max-width: 700px; }
+    .card { background: var(--card); border: 1px solid var(--border); padding: 1.4rem; position: relative; overflow: hidden; transition: border-color 0.3s, box-shadow 0.3s; }
+    .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(to right, var(--gold), transparent); opacity: 0; transition: opacity 0.3s; }
+    .card:hover { border-color: var(--gold-dim); box-shadow: 0 8px 40px #00000055; }
+    .card:hover::before { opacity: 1; }
+    .card-symbol { font-size: 1.5rem; margin-bottom: 0.7rem; display: block; }
+    .card-name { font-family: 'Cinzel', serif; font-size: 0.9rem; color: var(--white); letter-spacing: 2px; margin-bottom: 0.2rem; }
+    .card-role { font-family: 'Inter', sans-serif; font-size: 0.58rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); margin-bottom: 0.6rem; }
+    .card-desc { font-size: 0.84rem; color: var(--muted); line-height: 1.7; font-style: italic; }
+
+    /* Catálogo */
+    .catalog { display: flex; flex-direction: column; max-width: 660px; margin-top: 1.5rem; }
+    .cat-item { display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 1.4rem; padding: 1.1rem 0; border-bottom: 1px solid var(--border); transition: padding-left 0.3s; }
+    .cat-item:first-child { border-top: 1px solid var(--border); }
+    .cat-item:hover { padding-left: 0.5rem; }
+    .cat-item:hover .cat-num { color: var(--gold); }
+    .cat-item:hover .cat-name { color: var(--white); }
+    .cat-num { font-family: 'Cinzel', serif; font-size: 1.3rem; font-weight: 300; color: var(--border); font-style: italic; transition: color 0.3s; }
+    .cat-name { font-family: 'Cormorant Garamond', serif; font-size: 1rem; color: var(--silver); margin-bottom: 0.15rem; transition: color 0.3s; }
+    .cat-sub { font-family: 'Inter', sans-serif; font-size: 0.58rem; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+    .cat-badge { font-family: 'Inter', sans-serif; font-size: 0.6rem; color: var(--gold); white-space: nowrap; padding: 0.18rem 0.55rem; border: 1px solid var(--gold-dim); border-radius: 2px; }
+
+    /* Placeholder */
+    .ph { background: var(--card); border: 1px dashed var(--border); padding: 1.5rem; text-align: center; color: var(--muted); font-family: 'Inter', sans-serif; font-size: 0.76rem; letter-spacing: 1px; margin-top: 1.5rem; max-width: 660px; }
+    .ph span { display: block; font-size: 1.3rem; margin-bottom: 0.4rem; opacity: 0.3; }
+
+    /* ══ RESPONSIVO ══ */
+    @media (max-width: 700px) {
+      aside { width: 200px; }
+      .page { padding: 1.5rem 1rem; }
+      .card-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="stars"></div>
+
+<!-- ══ SIDEBAR ══ -->
+<aside>
+  <div class="aside-header">
+    <p class="aside-label">Bíblia do Universo</p>
+    <h1 class="aside-title">AION</h1>
+    <p class="aside-author">por Gutyerrez Filho</p>
+  </div>
+
+  <nav class="aside-nav">
+
+    <!-- O ANTES -->
+    <div class="acc-group">
+      <button class="acc-head" data-group="antes">
+        <div class="acc-head-left">
+          <span class="acc-era">??? — Big Bang</span>
+          <span class="acc-title">O Antes</span>
+        </div>
+        <span class="acc-arrow">▼</span>
+      </button>
+      <div class="acc-body" id="group-antes">
+        <button class="sub-item" data-page="branas">
+          <span class="sub-dot"></span>
+          <span class="sub-text">As Branas</span>
+        </button>
+        <button class="sub-item" data-page="forcas">
+          <span class="sub-dot"></span>
+          <span class="sub-text">As Forças Primordiais</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- GUERRA DAS RAÇAS -->
+    <div class="acc-group">
+      <button class="acc-head" data-group="guerra">
+        <div class="acc-head-left">
+          <span class="acc-era">Pós Big Bang — 4.6 bi a.a.</span>
+          <span class="acc-title">Guerra das Raças</span>
+        </div>
+        <span class="acc-arrow">▼</span>
+      </button>
+      <div class="acc-body" id="group-guerra">
+        <button class="sub-item" data-page="cosmos">
+          <span class="sub-dot"></span>
+          <span class="sub-text">Formação do Cosmos</span>
+        </button>
+        <button class="sub-item" data-page="solar">
+          <span class="sub-dot"></span>
+          <span class="sub-text">Enquanto o Sistema Solar se Forma</span>
+        </button>
+        <button class="sub-item" data-page="ashtar">
+          <span class="sub-dot"></span>
+          <span class="sub-text">Ashtar Sheran</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- O CONTO DOS ANTIGOS -->
+    <div class="acc-group">
+      <button class="acc-head" data-group="antigos">
+        <div class="acc-head-left">
+          <span class="acc-era">4.6 bi a.a. — 3500 a.C.</span>
+          <span class="acc-title">O Conto dos Antigos</span>
+        </div>
+        <span class="acc-arrow">▼</span>
+      </button>
+      <div class="acc-body" id="group-antigos">
+        <button class="sub-item" data-page="hadeano">
+          <span class="sub-dot"></span>
+          <span class="sub-text">Éon Hadeano</span>
+        </button>
+        <button class="sub-item" data-page="malk">
+          <span class="sub-dot"></span>
+          <span class="sub-text">Malk Tzadaq</span>
+        </button>
+        <button class="sub-item" data-page="arqueano">
+          <span class="sub-dot"></span>
+          <span class="sub-text">Éon Arqueano</span>
+        </button>
+        <button class="sub-item" data-page="presumeria">
+          <span class="sub-dot"></span>
+          <span class="sub-text">Pré-Suméria</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- CRÔNICA DOS GUARDIÕES -->
+    <div class="acc-group">
+      <button class="acc-head" data-group="guardioes">
+        <div class="acc-head-left">
+          <span class="acc-era">1669 — 1920</span>
+          <span class="acc-title">Crônica dos Guardiões</span>
+        </div>
+        <span class="acc-arrow">▼</span>
+      </button>
+      <div class="acc-body" id="group-guardioes">
+        <button class="sub-item" data-page="forte">
+          <span class="sub-dot"></span>
+          <span class="sub-text">Criação do Forte</span>
+        </button>
+        <button class="sub-item" data-page="guerra-manaus">
+          <span class="sub-dot"></span>
+          <span class="sub-text">Guerra do Manaus</span>
+        </button>
+        <button class="sub-item" data-page="borracha">
+          <span class="sub-dot"></span>
+          <span class="sub-text">Ciclo da Borracha</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- CLUBE DA NOITE -->
+    <div class="acc-group">
+      <button class="acc-head" data-group="clube">
+        <div class="acc-head-left">
+          <span class="acc-era">1998 — Presente</span>
+          <span class="acc-title">Clube da Noite</span>
+        </div>
+        <span class="acc-arrow">▼</span>
+      </button>
+      <div class="acc-body" id="group-clube">
+        <button class="sub-item" data-page="clube-origem">
+          <span class="sub-dot"></span>
+          <span class="sub-text">A Experiência de 1998</span>
+        </button>
+        <button class="sub-item" data-page="clube-personagens">
+          <span class="sub-dot"></span>
+          <span class="sub-text">Os Personagens</span>
+        </button>
+        <button class="sub-item" data-page="clube-livros">
+          <span class="sub-dot"></span>
+          <span class="sub-text">Livros Publicados</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ANGEL LIGHT AND SHADOWS -->
+    <div class="acc-group">
+      <button class="acc-head" data-group="angel">
+        <div class="acc-head-left">
+          <span class="acc-era">A definir</span>
+          <span class="acc-title">Angel Light and Shadows</span>
+        </div>
+        <span class="acc-arrow">▼</span>
+      </button>
+      <div class="acc-body" id="group-angel">
+        <button class="sub-item" data-page="angel-intro">
+          <span class="sub-dot"></span>
+          <span class="sub-text">Introdução</span>
+        </button>
+      </div>
+    </div>
+
+  </nav>
+</aside>
+
+<!-- ══ PÁGINAS ══ -->
+<main id="main-content">
+
+  <!-- TELA INICIAL -->
+  <div class="page active" id="page-home">
+    <span class="page-eyebrow">Bíblia do Universo</span>
+    <h2 class="page-title">AION</h2>
+    <div class="page-rule"></div>
+    <p class="page-lead">Selecione uma era na linha do tempo para começar.</p>
+    <div class="page-body">
+      <p>Aion não é apenas um nome. Na mitologia grega, <strong>Aion</strong> é o deus do tempo cíclico e da eternidade — o eterno retorno. O universo que leva seu nome foi construído sobre essa filosofia: tudo o que acontece já aconteceu antes, e acontecerá de novo.</p>
+      <p>Esta bíblia documenta o universo desde <strong>antes do Big Bang</strong> até o <strong>presente</strong> — das forças primordiais que precedem a existência até um garoto de 9 anos em Manaus em 1998.</p>
+    </div>
+    <div class="callout">"O tempo não é uma linha. É um ciclo. E Aion é o nome desse ciclo." — Gutyerrez Filho</div>
+  </div>
+
+  <!-- AS BRANAS -->
+  <div class="page" id="page-branas">
+    <span class="page-eyebrow">O Antes · Cosmologia</span>
+    <h2 class="page-title">As Branas</h2>
+    <div class="page-rule"></div>
+    <p class="page-lead">Antes do Big Bang, antes da luz, antes do tempo — existiam as Branas. Duas membranas dimensionais flutuando no hiperespaço. E entre elas, tensão.</p>
+    <div class="page-body">
+      <p>A cosmologia de Aion parte da <strong>Teoria das Branas</strong> — o modelo da física teórica (Teoria M) que propõe que o Big Bang não foi uma criação do nada, mas a colisão entre duas membranas dimensionais flutuando num espaço de dimensões superiores.</p>
+      <p>Em Aion, as Branas não são apenas estruturas físicas. São <strong>conscientes</strong>. Elas existiam antes de qualquer coisa que reconhecemos como universo. E quando colidiram — não foi acidente. Foi escolha.</p>
+    </div>
+    <div class="callout">"Antes do universo, havia vontade. Antes da vontade, havia tensão. E antes da tensão — havia o Antes."</div>
+    <div class="ph"><span>◎</span>Adicionar: a natureza das Branas, seus nomes no universo Aion, o que existia entre elas.</div>
+  </div>
+
+  <!-- AS FORÇAS PRIMORDIAIS -->
+  <div class="page" id="page-forcas">
+    <span class="page-eyebrow">O Antes · As Forças</span>
+    <h2 class="page-title">As Forças Primordiais</h2>
+    <div class="page-rule"></div>
+    <p class="page-lead">Quando as Branas colidiram, a força unificada primordial se fragmentou em quatro. Não como conceitos. Como seres.</p>
+    <div class="card-grid">
+      <div class="card">
+        <span class="card-symbol">⬤</span>
+        <p class="card-name">Gravidade</p>
+        <p class="card-role">A Primordial · A Silenciosa</p>
+        <p class="card-desc">A mais antiga. Tudo é atraído para ela, mas ela nunca se move em direção a ninguém. Carrega o peso de toda a existência — literalmente.</p>
+      </div>
+      <div class="card">
+        <span class="card-symbol">⚡</span>
+        <p class="card-name">Eletromagnetismo</p>
+        <p class="card-role">A Dualidade · A Radiante</p>
+        <p class="card-desc">Luz e campo. Atrai e repele. A mais visível de todas — e por isso a mais incompreendida. Sua natureza é a contradição.</p>
+      </div>
+      <div class="card">
+        <span class="card-symbol">◈</span>
+        <p class="card-name">Força Nuclear Forte</p>
+        <p class="card-role">O Vínculo · O Sustentáculo</p>
+        <p class="card-desc">Mantém tudo unido no nível mais profundo. Ninguém fala dela. Sem ela, nada existe. O silêncio que sustenta o grito.</p>
+      </div>
+      <div class="card">
+        <span class="card-symbol">〰</span>
+        <p class="card-name">Força Nuclear Fraca</p>
+        <p class="card-role">O Decaimento · A Transformação</p>
+        <p class="card-desc">A força do fim e da mudança. Causa decaimento, transformação, morte lenta. A mais necessária e a menos amada.</p>
+      </div>
+    </div>
+    <div class="ph"><span>✦</span>Adicionar: conflitos entre as forças, alianças, os eventos do Antes que moldaram o universo.</div>
+  </div>
+
+  <!-- FORMAÇÃO DO COSMOS -->
+  <div class="page" id="page-cosmos">
+    <span class="page-eyebrow">Guerra das Raças · Pós Big Bang</span>
+    <h2 class="page-title">Formação do Cosmos</h2>
+    <div class="page-rule"></div>
+    <p class="page-lead">A colisão das Branas. O Big Bang. O cosmos se expande e as primeiras estruturas emergem do caos primordial.</p>
+    <div class="itl">
+      <div class="itl-item">
+        <span class="itl-date">T = 0</span>
+        <p class="itl-title">A Colisão das Branas</p>
+        <p class="itl-desc">As duas membranas colidem. O Big Bang é o eco desse impacto. O universo começa a existir.</p>
+        <span class="itl-tag">Cosmologia</span>
+      </div>
+      <div class="itl-item">
+        <span class="itl-date">Primeiros segundos</span>
+        <p class="itl-title">As Quatro Forças se Separam</p>
+        <p class="itl-desc">A força unificada primordial se fragmenta. Gravidade, Eletromagnetismo, Nuclear Forte e Fraca tornam-se entidades distintas.</p>
+        <span class="itl-tag">As Forças</span>
+      </div>
+      <div class="itl-item">
+        <span class="itl-date">~380.000 anos</span>
+        <p class="itl-title">A Primeira Luz</p>
+        <p class="itl-desc">O universo esfria. A luz viaja livremente pela primeira vez. Eletromagnetismo encontra seu domínio.</p>
+        <span class="itl-tag">A Radiante</span>
+      </div>
+      <div class="itl-item">
+        <span class="itl-date">A definir</span>
+        <p class="itl-title">Primeiras Raças do Cosmos</p>
+        <p class="itl-desc">Placeholder — as primeiras civilizações do universo Aion.</p>
+        <span class="itl-tag">A definir</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SISTEMA SOLAR -->
+  <div class="page" id="page-solar">
+    <span class="page-eyebrow">Guerra das Raças · ~4.6 Bilhões a.a.</span>
+    <h2 class="page-title">Enquanto o Sistema Solar se Forma</h2>
+    <div class="page-rule"></div>
+    <p class="page-lead">De uma nuvem de gás e poeira, o Sol acende. Os planetas se formam. E com eles — a atenção de raças que já observavam de longe.</p>
+    <div class="ph"><span>☀</span>Adicionar: chegada das primeiras raças ao sistema solar, conflitos de colonização, o que havia antes da Terra.</div>
+  </div>
+
+  <!-- ASHTAR SHERAN -->
+  <div class="page" id="page-ashtar">
+    <span class="page-eyebrow">Guerra das Raças · Personagem</span>
+    <h2 class="page-title">Ashtar Sheran</h2>
+    <div class="page-rule"></div>
+    <p class="page-lead">Um nome que ressoa com a mitologia ufológica real — e carrega peso antes mesmo de o leitor saber quem ele é.</p>
+    <div class="page-body">
+      <p>Na mitologia ufológica real, <strong>Ashtar Sheran</strong> é descrito como um ser intergaláctico, comandante de uma frota cósmica. Em Aion, esse nome é reapropriado — o peso do inconsciente coletivo que ele carrega é parte da escolha.</p>
+    </div>
+    <div class="ph"><span>⚔</span>Adicionar: origem de Ashtar Sheran no universo Aion, sua raça, seu papel na Guerra das Raças, poderes e motivações.</div>
+  </div>
+
+  <!-- HADEANO -->
+  <div class="page" id="page-hadeano">
+    <span class="page-eyebrow">O Conto dos Antigos · Éon Hadeano</span>
+    <h2 class="page-title">Éon Hadeano</h2>
+    <div class="page-rule"></div>
+    <p class="page-lead">~4.6 a 4 bilhões de anos atrás. A Terra sem crosta sólida. Oceanos de magma. Bombardeios de meteoros. O período mais inóspito que a Terra já conheceu.</p>
+    <div class="page-body">
+      <p>O Éon Hadeano é o primeiro éon geológico da Terra — tão hostil que quase não deixou registros. A crosta ainda se formava, o planeta era bombardeado constantemente, e o calor interno mantinha a superfície em estado de magma.</p>
+      <p>É aqui, nesse inferno primordial, que a narrativa de Aion planta uma de suas sementes mais perturbadoras.</p>
+    </div>
+    <div class="ph"><span>🌋</span>Adicionar: eventos do Hadeano no universo Aion, entidades presentes, conexão com Malk Tzadaq.</div>
+  </div>
+
+  <!-- MALK TZADAQ -->
+  <div class="page" id="page-malk">
+    <span class="page-eyebrow">O Conto dos Antigos · Personagem</span>
+    <h2 class="page-title">Malk Tzadaq</h2>
+    <div class="page-rule"></div>
+    <p class="page-lead">O Rei do Mundo. Caminha pela Terra no Éon Hadeano — quando a superfície ainda era magma. Sem origem conhecida. Apenas presente.</p>
+    <div class="page-body">
+      <p><strong>Malk Tzadaq</strong> — "Rei da Justiça" em hebraico. Melquisedeque. Um dos seres mais misteriosos de toda a tradição religiosa e esotérica: sem pai, sem mãe, sem genealogia, sem começo nem fim registrado.</p>
+      <p>Em Aion, ele aparece no Hadeano — bilhões de anos antes de qualquer civilização humana. Não como invasor, não como criador. Simplesmente como alguém que <em>já estava lá</em>.</p>
+    </div>
+    <div class="callout">"Ele não criou a Terra. Ele simplesmente estava lá quando ela nasceu. E ninguém sabe há quanto tempo estava antes disso."</div>
+    <div class="ph"><span>👁</span>Adicionar: natureza de Malk Tzadaq no universo Aion, seu papel, o que ele observa, conexão com outras séries.</div>
+  </div>
+
+  <!-- ARQUEANO -->
+  <div class="page" id="page-arqueano">
+    <span class="page-eyebrow">O Conto dos Antigos · Éon Arqueano</span>
+    <h2 class="page-title">Éon Arqueano</h2>
+    <div class="page-rule"></div>
+    <p class="page-lead">~4 a 2.5 bilhões de anos atrás. A vida surge. As primeiras formas microscópicas. A Terra aprende a respirar.</p>
+    <div class="ph"><span>🌊</span>Adicionar: eventos do Arqueano no universo Aion, primeiros seres, presenças sobrenaturais.</div>
+  </div>
+
+  <!-- PRÉ-SUMÉRIA -->
+  <div class="page" id="page-presumeria">
+    <span class="page-eyebrow">O Conto dos Antigos · Até ~3500 a.C.</span>
+    <h2 class="page-title">Pré-Suméria</h2>
+    <div class="page-rule"></div>
+    <p class="page-lead">O limiar da história escrita. Civilizações que não deixaram registros — ou que deixaram registros que não reconhecemos como tais.</p>
+    <div class="ph"><span>𒀭</span>Adicionar: civilizações esquecidas, conexão com as séries seguintes, o que existia antes da escrita.</div>
+  </div>
+
+  <!-- FORTE -->
+  <div class="page" id="page-forte">
+    <span class="page-eyebrow">Crônica dos Guardiões · 1669</span>
+    <h2 class="page-title">Criação do Forte</h2>
+    <div class="page-rule"></div>
+    <p class="page-lead">1669. O Forte de São José do Rio Negro é erguido às margens do Rio Negro. Uma estrutura militar portuguesa. E algo mais — que os construtores não sabiam que estavam edificando.</p>
+    <div class="itl">
+      <div class="itl-item">
+        <span class="itl-date">1669</span>
+        <p class="itl-title">Fundação do Forte de São José do Rio Negro</p>
+        <p class="itl-desc">Francisco da Mota Falcão ergue o forte às margens do Rio Negro. Marco inicial da presença portuguesa na região.</p>
+        <span class="itl-tag">História Real</span>
+      </div>
+      <div class="itl-item">
+        <span class="itl-date">A definir</span>
+        <p class="itl-title">O Que Foi Construído Junto</p>
+        <p class="itl-desc">Placeholder — o elemento sobrenatural da fundação do forte no universo Aion.</p>
+        <span class="itl-tag">A definir</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- GUERRA DO MANAUS -->
+  <div class="page" id="page-guerra-manaus">
+    <span class="page-eyebrow">Crônica dos Guardiões · Séc. XVIII</span>
+    <h2 class="page-title">Guerra do Manaus</h2>
+    <div class="page-rule"></div>
+    <p class="page-lead">O confronto entre colonizadores e o povo Manaós — que daria nome à cidade. Uma guerra histórica. E o que se movia nas sombras dela.</p>
+    <div class="ph"><span>⚔</span>Adicionar: detalhes da Guerra do Manaus no universo Aion, personagens, o sobrenatural do conflito.</div>
+  </div>
+
+  <!-- BORRACHA -->
+  <div class="page" id="page-borracha">
+    <span class="page-eyebrow">Crônica dos Guardiões · 1850 — 1920</span>
+    <h2 class="page-title">Ciclo da Borracha</h2>
+    <div class="page-rule"></div>
+    <p class="page-lead">O apogeu e a ruína. Manaus se torna uma das cidades mais ricas do mundo — e então tudo desmorona. Poder, sangue, ambição. E coisas que a floresta guarda.</p>
+    <div class="itl">
+      <div class="itl-item">
+        <span class="itl-date">1850</span>
+        <p class="itl-title">Início do Ciclo</p>
+        <p class="itl-desc">A demanda industrial por borracha transforma a Amazônia. Manaus começa sua ascensão.</p>
+        <span class="itl-tag">Histórico</span>
+      </div>
+      <div class="itl-item">
+        <span class="itl-date">1892 — 1896</span>
+        <p class="itl-title">Criação Oficial de Manaus</p>
+        <p class="itl-desc">A cidade é fundada. O Teatro Amazonas é inaugurado em 1896 — símbolo da riqueza da borracha.</p>
+        <span class="itl-tag">Histórico</span>
+      </div>
+      <div class="itl-item">
+        <span class="itl-date">1912 — 1920</span>
+        <p class="itl-title">Colapso do Ciclo</p>
+        <p class="itl-desc">A borracha asiática derruba os preços. O ciclo colapsa. O que as fortunas deixaram para trás — e o que não foi embora com elas.</p>
+        <span class="itl-tag">Declínio</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLUBE — ORIGEM -->
+  <div class="page" id="page-clube-origem">
+    <span class="page-eyebrow">Clube da Noite · 1998</span>
+    <h2 class="page-title">A Experiência de 1998</h2>
+    <div class="page-rule"></div>
+    <p class="page-lead">Manaus, 1998. Um garoto de 9 anos. Uma experiência sobrenatural. O ponto zero de toda a série.</p>
+    <div class="ph"><span>👁</span>Adicionar: o que aconteceu em 1998, a natureza da experiência, como isso mudou o garoto.</div>
+  </div>
+
+  <!-- CLUBE — PERSONAGENS -->
+  <div class="page" id="page-clube-personagens">
+    <span class="page-eyebrow">Clube da Noite · Personagens</span>
+    <h2 class="page-title">Os Personagens</h2>
+    <div class="page-rule"></div>
+    <p class="page-lead">O Clube da Noite não é um lugar. É um grupo. Pessoas que o sobrenatural encontrou — e que decidiram não virar as costas.</p>
+    <div class="card-grid">
+      <div class="card">
+        <span class="card-symbol">👦</span>
+        <p class="card-name">O Garoto</p>
+        <p class="card-role">Protagonista · 9 anos em 1998</p>
+        <p class="card-desc">Uma experiência sobrenatural muda tudo. O ponto de origem de toda a série.</p>
+      </div>
+      <div class="card">
+        <span class="card-symbol">👧</span>
+        <p class="card-name">Luiza</p>
+        <p class="card-role">Personagem Central</p>
+        <p class="card-desc">Conhecida após o evento de 1998. Parte essencial do Clube.</p>
+      </div>
+      <div class="card">
+        <span class="card-symbol">♿</span>
+        <p class="card-name">Toni</p>
+        <p class="card-role">Caçador de Fantasmas · Cadeirante</p>
+        <p class="card-desc">Caça fantasmas de uma cadeira de rodas. Desafia qualquer expectativa sobre o que um caçador do sobrenatural deve ser.</p>
+      </div>
+    </div>
+    <div class="ph"><span>+</span>Adicionar: outros membros do Clube da Noite, personagens secundários, antagonistas.</div>
+  </div>
+
+  <!-- CLUBE — LIVROS -->
+  <div class="page" id="page-clube-livros">
+    <span class="page-eyebrow">Clube da Noite · Obras Publicadas</span>
+    <h2 class="page-title">Livros Publicados</h2>
+    <div class="page-rule"></div>
+    <p class="page-lead">Dois livros publicados. A história do Clube da Noite já existe no mundo.</p>
+    <div class="catalog">
+      <div class="cat-item">
+        <span class="cat-num">I</span>
+        <div>
+          <p class="cat-name">Pequenos Contos de Horror</p>
+          <p class="cat-sub">Clube da Noite · Contos</p>
+        </div>
+        <span class="cat-badge">2021 · Publicado</span>
+      </div>
+      <div class="cat-item">
+        <span class="cat-num">II</span>
+        <div>
+          <p class="cat-name">Clube da Noite: Capítulo Um</p>
+          <p class="cat-sub">Clube da Noite · Romance</p>
+        </div>
+        <span class="cat-badge">2025 · Publicado</span>
+      </div>
+    </div>
+    <div class="ph"><span>📚</span>Adicionar: sinopses, capas, links de compra, próximos volumes.</div>
+  </div>
+
+  <!-- ANGEL -->
+  <div class="page" id="page-angel-intro">
+    <span class="page-eyebrow">Angel Light and Shadows</span>
+    <h2 class="page-title">Angel Light and Shadows</h2>
+    <div class="page-rule"></div>
+    <p class="page-lead">O lado celestial do universo Aion. Luz e sombra. Anjos e o que existe entre os dois.</p>
+    <div class="ph"><span>✦</span>Adicionar: premissa da série, personagens, período, conexão com o restante do universo Aion.</div>
+  </div>
+
+</main>
+
+<script>
+  // Estrelas
+  const sf = document.getElementById('stars');
+  for (let i = 0; i < 120; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const sz  = (Math.random()*1.8+0.4).toFixed(1);
+    const op  = (Math.random()*0.2+0.05).toFixed(2);
+    const d   = (Math.random()*7+3).toFixed(1);
+    const del = (Math.random()*10).toFixed(1);
+    s.style.cssText = `width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--op:${op};--d:${d}s;--delay:${del}s;`;
+    sf.appendChild(s);
+  }
+
+  const main = document.getElementById('main-content');
+
+  // ── ACCORDION ──
+  document.querySelectorAll('.acc-head').forEach(head => {
+    head.addEventListener('click', () => {
+      const body = document.getElementById('group-' + head.dataset.group);
+      const isOpen = head.classList.contains('open');
+      // Toggle — vários podem ficar abertos
+      head.classList.toggle('open', !isOpen);
+      body.classList.toggle('open', !isOpen);
+    });
+  });
+
+  // ── TROCA DE PÁGINA ──
+  const allPages = document.querySelectorAll('.page');
+  const allSubs  = document.querySelectorAll('.sub-item');
+
+  function showPage(pageId) {
+    allPages.forEach(p => p.classList.remove('active'));
+    allSubs.forEach(s => s.classList.remove('active'));
+
+    const page = document.getElementById('page-' + pageId);
+    if (page) {
+      page.classList.add('active');
+      main.scrollTop = 0;
+    }
+
+    const sub = document.querySelector(`.sub-item[data-page="${pageId}"]`);
+    if (sub) sub.classList.add('active');
+  }
+
+  allSubs.forEach(sub => {
+    sub.addEventListener('click', () => showPage(sub.dataset.page));
+  });
+</script>
+</body>
+</html>
+
