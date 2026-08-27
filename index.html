@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Aion</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@300;400;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --void: #060608;
+    --surface: #11111a;
+    --card: #16161f;
+    --border: #22223a;
+    --gold: #c8a96e;
+    --gold-dim: #7a6030;
+    --gold-pale: #c8a96e13;
+    --silver: #c8d0e0;
+    --muted: #5a5a78;
+    --text: #9090b0;
+    --white: #e8eaf0;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 15px; }
+  body {
+    background: var(--void); color: var(--text);
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    min-height: 100vh; overflow-x: hidden;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+
+  /* STARFIELD */
+  #stars { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+  .star { position: absolute; border-radius: 50%; background: white; animation: twinkle var(--d,4s) ease-in-out infinite alternate; animation-delay: var(--delay,0s); }
+  @keyframes twinkle { from { opacity: var(--op,.1); } to { opacity: calc(var(--op,.1)*4); } }
+
+  /* faint radial glow behind the sigil, standing in for the collision of the two Branas */
+  #glow {
+    position: fixed; z-index: 0; pointer-events: none;
+    top: 50%; left: 50%; width: 900px; height: 900px;
+    transform: translate(-50%,-50%);
+    background: radial-gradient(circle, var(--gold-pale) 0%, transparent 70%);
+    opacity: 0.6;
+  }
+
+  main {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 560px;
+    padding: 3rem 2rem;
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center;
+    animation: pageIn 0.7s ease both;
+  }
+  @keyframes pageIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+  .sigil {
+    width: 46px; height: 46px; margin-bottom: 1.6rem;
+    position: relative;
+  }
+  .sigil svg { width: 100%; height: 100%; }
+  .sigil circle, .sigil path { stroke: var(--gold-dim); }
+
+  .eyebrow {
+    font-family: 'Inter', sans-serif; font-size: 0.58rem;
+    letter-spacing: 6px; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 0.7rem;
+  }
+  h1 {
+    font-family: 'Cinzel', serif; font-weight: 300;
+    font-size: clamp(2.6rem, 8vw, 3.6rem);
+    letter-spacing: 10px; color: var(--white);
+    margin-bottom: 0.6rem;
+  }
+  .tagline {
+    font-size: 1.02rem; font-style: italic; color: var(--silver);
+    font-weight: 300; max-width: 420px; line-height: 1.85;
+    margin-bottom: 3rem;
+  }
+
+  nav.doors {
+    display: flex; flex-direction: column; gap: 0.9rem;
+    width: 100%;
+  }
+
+  .door {
+    position: relative;
+    display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
+    padding: 1.15rem 1.4rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    text-decoration: none;
+    overflow: hidden;
+    transition: border-color 0.35s, background 0.35s, transform 0.25s;
+  }
+  .door::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(120deg, var(--gold-pale), transparent 60%);
+    opacity: 0; transition: opacity 0.35s;
+  }
+  .door:hover {
+    border-color: var(--gold-dim);
+    background: var(--card);
+    transform: translateY(-2px);
+  }
+  .door:hover::before { opacity: 1; }
+  .door:focus-visible {
+    outline: 1px solid var(--gold);
+    outline-offset: 3px;
+  }
+
+  .door-mark {
+    font-family: 'Cinzel', serif; font-size: 0.8rem; font-weight: 400;
+    color: var(--gold-dim); margin-bottom: 0.2rem;
+    transition: color 0.35s;
+  }
+  .door:hover .door-mark { color: var(--gold); }
+
+  .door-text { text-align: center; position: relative; z-index: 1; }
+  .door-name {
+    display: block;
+    font-family: 'Cinzel', serif; font-size: 1rem; font-weight: 400;
+    letter-spacing: 2.5px; color: var(--silver); margin-bottom: 0.3rem;
+    transition: color 0.35s;
+  }
+  .door:hover .door-name { color: var(--white); }
+  .door-sub {
+    display: block;
+    font-family: 'Inter', sans-serif; font-size: 0.66rem;
+    letter-spacing: 0.5px; color: var(--muted);
+  }
+
+  footer {
+    margin-top: 3rem;
+    font-family: 'Inter', sans-serif; font-size: 0.62rem;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--muted);
+  }
+  footer span { color: var(--gold-dim); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .star { animation: none; }
+    main { animation: none; }
+  }
+
+  @media (max-width: 480px) {
+    main { padding: 2rem 1.4rem; }
+    h1 { letter-spacing: 6px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="stars"></div>
+<div id="glow"></div>
+
+<main>
+  <div class="sigil" aria-hidden="true">
+    <svg viewBox="0 0 46 46" fill="none">
+      <circle cx="23" cy="23" r="15" stroke-width="0.75"/>
+      <circle cx="17" cy="23" r="15" stroke-width="0.75" opacity="0.55"/>
+      <circle cx="29" cy="23" r="15" stroke-width="0.75" opacity="0.55"/>
+    </svg>
+  </div>
+
+  <p class="eyebrow">Um universo de Gutyerrez Filho</p>
+  <h1>AION</h1>
+  <p class="tagline">Tudo o que acontece já aconteceu antes, e acontecerá de novo.</p>
+
+  <nav class="doors">
+    <a class="door" href="#" data-dest="universo">
+      <span class="door-mark">I</span>
+      <span class="door-text">
+        <span class="door-name">Universo Aion</span>
+        <span class="door-sub">conheça o universo de escrita de Gutyerrez Filho</span>
+      </span>
+    </a>
+
+    <a class="door" href="#" data-dest="lugar-secreto">
+      <span class="door-mark">II</span>
+      <span class="door-text">
+        <span class="door-name">Lugar Secreto</span>
+        <span class="door-sub">Comunidade de escritores e artistas</span>
+      </span>
+    </a>
+
+    <a class="door" href="#" data-dest="loja">
+      <span class="door-mark">III</span>
+      <span class="door-text">
+        <span class="door-name">Loja</span>
+        <span class="door-sub">Livros e produtos do universo Aion</span>
+      </span>
+    </a>
+
+    <a class="door" href="#" data-dest="servicos">
+      <span class="door-mark">IV</span>
+      <span class="door-text">
+        <span class="door-name">Serviços</span>
+        <span class="door-sub">Desenvolvimento de Sites,Plataformas, Softwares, Jogos e Apps</span>
+      </span>
+    </a>
+  </nav>
+
+  <footer>Universo <span>·</span> Aion</footer>
+</main>
+
+<script>
+  const sf = document.getElementById('stars');
+  for (let i = 0; i < 120; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const sz  = (Math.random()*1.8+0.4).toFixed(1);
+    const op  = (Math.random()*0.2+0.05).toFixed(2);
+    const d   = (Math.random()*7+3).toFixed(1);
+    const del = (Math.random()*10).toFixed(1);
+    s.style.cssText = `width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--op:${op};--d:${d}s;--delay:${del}s;`;
+    sf.appendChild(s);
+  }
+
+  // Placeholder navigation — troque os href="#" pelos links reais de cada seção
+  document.querySelectorAll('.door').forEach(door => {
+    door.addEventListener('click', (e) => {
+      if (door.getAttribute('href') === '#') {
+        e.preventDefault();
+        console.log('Destino ainda não configurado:', door.dataset.dest);
+      }
+    });
+  });
+</script>
+</body>
+</html>
